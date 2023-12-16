@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "equationtracer"
 version = "1.0.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Uses Discrete Fourier Transform to Turn Scribbles into Equations!"
+authors = ["Ying Liqian <jamesylq@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -14,3 +14,6 @@ numpy = "^1.26.2"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+trace-equation = "EquationTracer.main:main"
