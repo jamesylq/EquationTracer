@@ -6,9 +6,10 @@ authors = ["Ying Liqian <jamesylq@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 pygame = "^2.5.2"
 numpy = "^1.26.2"
+pyperclip = "^1.8.2"
 
 
 [build-system]

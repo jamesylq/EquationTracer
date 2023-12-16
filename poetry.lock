@@ -111,7 +111,17 @@ files = [
     {file = "pygame-2.5.2.tar.gz", hash = "sha256:c1b89eb5d539e7ac5cf75513125fb5f2f0a2d918b1fd6e981f23bf0ac1b1c24a"},
 ]
 
+[[package]]
+name = "pyperclip"
+version = "1.8.2"
+description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyperclip-1.8.2.tar.gz", hash = "sha256:105254a8b04934f0bc84e9c24eb360a591aaf6535c9def5f29d92af107a9bf57"},
+]
+
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.12"
-content-hash = "696e09506e3d8399f79b55a225d89bff4788f1c03770be1d70cc7f0ebd34947f"
+python-versions = "^3.9"
+content-hash = "8b2fcbd3bf9d5b97bde29bd2cfe27c333cd5a1ba824833e7fa74838f582a52e6"
