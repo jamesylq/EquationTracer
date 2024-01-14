@@ -1,6 +1,6 @@
 try:
     from main import main
-except ModuleNotFoundError:
+except (NameError, FileNotFoundError, ModuleNotFoundError):
     from equationtracer.main import main
 
 main()
