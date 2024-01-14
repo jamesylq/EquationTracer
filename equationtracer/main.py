@@ -1,3 +1,4 @@
+# Imports
 import pygame
 import pyperclip
 from numpy import *
@@ -5,10 +6,21 @@ from typing import *
 
 try:
     from keyboard import *
-except ModuleNotFoundError:
+except (ModuleNotFoundError, NameError, FileNotFoundError):
     from equationtracer.keyboard import *
 
 
+# Pygame Setup
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode((500, 500))
+pygame.display.set_caption("EquationTracer")
+pygame.init()
+pygame.font.init()
+font = pygame.font.SysFont("Arial", 20)
+tinyfont = pygame.font.SysFont("Arial", 15)
+
+
+# Funtions
 def leftAlignPrint(screen: pygame.Surface, ft: pygame.font.Font, text: str, pos: Tuple[int, int], color: Tuple[int, int, int] = (255, 255, 255)) -> None:
     textObj = ft.render(text, True, color)
     screen.blit(textObj, textObj.get_rect(center=[pos[0] + ft.size(text)[0] / 2, pos[1]]))
@@ -24,7 +36,7 @@ def rightAlignPrint(screen: pygame.Surface, ft: pygame.font.Font, text: str, pos
     screen.blit(textObj, textObj.get_rect(center=[pos[0] - ft.size(text)[0] / 2, pos[1]]))
 
 
-def gen(n, x, y, s, points):
+def generateEquation(n, x, y, s, points):
     for m in range(len(points) - 1, -1, -1):
         points[m] = (points[m][0] - 250, 250 - points[m][1])
         points.append(points[m])
@@ -50,15 +62,8 @@ def gen(n, x, y, s, points):
     return eq, r
 
 
+#
 def main():
-    clock = pygame.time.Clock()
-    screen = pygame.display.set_mode((500, 500))
-    pygame.display.set_caption("EquationTracer")
-    pygame.init()
-    pygame.font.init()
-    font = pygame.font.SysFont("Arial", 20)
-    tinyfont = pygame.font.SysFont("Arial", 15)
-
     term = drawing = False
     fields = [str(x[2]) for x in FIELDS]
     points = []
@@ -153,7 +158,7 @@ def main():
     while True:
         term = False
         if drawing:
-            points.append(list(pygame.mouse.get_pos()))
+            points.append(tuple(pygame.mouse.get_pos()))
 
         centredPrint(screen, font, "Draw a Continuous Curve!", (250, 20))
 
@@ -179,7 +184,7 @@ def main():
         clock.tick(100)
 
     T = 0
-    eq, r = gen(n, x, y, s, points)
+    eq, r = generateEquation(n, x, y, s, points)
 
     vects = []
     precomp = []
@@ -188,18 +193,20 @@ def main():
         dy = 0
         vect = []
         for k in range(n, -1, -1):
-            dx += r[n + k][0] * cos(k * pi * tm / 1000) - r[n + k][1] * sin(k * pi * tm / 1000)
-            dy += r[n + k][0] * sin(k * pi * tm / 1000) + r[n + k][1] * cos(k * pi * tm / 1000)
-            vect.append((r[n + k][0] * cos(k * pi * tm / 1000) - r[n + k][1] * sin(k * pi * tm / 1000),
-                         r[n + k][0] * sin(k * pi * tm / 1000) + r[n + k][1] * cos(k * pi * tm / 1000)))
+            cx = r[n + k][0] * cos(k * pi * tm / 1000) - r[n + k][1] * sin(k * pi * tm / 1000)
+            cy = r[n + k][1] * cos(k * pi * tm / 1000) + r[n + k][0] * sin(k * pi * tm / 1000)
+            dx += cx
+            dy += cy
+            vect.append((cx, cy))
 
             if k == 0:
                 break
 
-            dx += r[n - k][0] * cos(k * pi * tm / 1000) + r[n - k][1] * sin(k * pi * tm / 1000)
-            dy += -r[n - k][0] * sin(k * pi * tm / 1000) + r[n - k][1] * cos(k * pi * tm / 1000)
-            vect.append((r[n - k][0] * cos(k * pi * tm / 1000) + r[n - k][1] * sin(k * pi * tm / 1000),
-                         -r[n - k][0] * sin(k * pi * tm / 1000) + r[n - k][1] * cos(k * pi * tm / 1000)))
+            cx = r[n - k][0] * cos(k * pi * tm / 1000) + r[n - k][1] * sin(k * pi * tm / 1000)
+            cy = r[n - k][1] * cos(k * pi * tm / 1000) - r[n - k][0] * sin(k * pi * tm / 1000)
+            dx += cx
+            dy += cy
+            vect.append((cx, cy))
 
         vects.append(vect)
         precomp.append((250 + dx, 250 - dy))
