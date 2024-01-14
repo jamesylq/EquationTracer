@@ -26,13 +26,30 @@ tinyfont = pygame.font.SysFont("Arial", 15)
 
 # Buttons Setup
 buttons = ButtonManager(screen)
-BEGIN_DRAWING = Button((350, 460, 140, 30), fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255), render="Start Drawing!", font=tinyfont)
-COPY_CLIPBOARD = Button((350, 460, 140, 30), fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255), render="Copy to Clipboard", font=tinyfont)
+BEGIN_DRAWING = Button((350, 460, 140, 30), render="Start Drawing!", font=tinyfont,
+                       fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
+REDO_PARAMS = Button((10, 460, 140, 30), render="Modify Settings", font=tinyfont,
+                     fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
+REDRAW_CURVE = Button((10, 460, 140, 30), render="Redraw Curve", font=tinyfont,
+                      fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
+COPY_CLIPBOARD = Button((350, 460, 140, 30), render="Copy to Clipboard", font=tinyfont,
+                        fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
 GROUP_1 = [BEGIN_DRAWING]
-GROUP_2 = [COPY_CLIPBOARD]
+GROUP_2 = [REDO_PARAMS]
+GROUP_3 = [REDRAW_CURVE, COPY_CLIPBOARD]
 
 
-def generateEquation(n, x, y, s, points):
+# Global Parameters
+n = 25
+x = 0
+y = 0
+s = 10
+fields = [str(x[2]) for x in FIELDS]
+
+
+def generateEquation(points) -> Tuple[str, List[Tuple[float, float]]]:
+    global n, x, y, s
+
     for m in range(len(points) - 1, -1, -1):
         points[m] = (points[m][0] - 250, 250 - points[m][1])
         points.append(points[m])
@@ -58,15 +75,11 @@ def generateEquation(n, x, y, s, points):
     return eq, r
 
 
-#
-def main():
-    term = drawing = False
-    fields = [str(x[2]) for x in FIELDS]
-    points = []
+def getParams() -> None:
+    global n, x, y, s, fields
 
-    x = y = delta = flashcount = 0
-    selected = selectedx = -1
-    s, n = 10, 25
+    selected = selectedx = delta = -1
+    flashcount = 0
 
     while True:
         mx, my = pygame.mouse.get_pos()
@@ -88,14 +101,18 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
                 quit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if BEGIN_DRAWING.check():
-                        term = True
-                        break
+                        s, x, y, n = map(float, fields)
+                        n = int(n)
+                        s /= 250
+
+                        screen.fill((0, 0, 0))
+                        pygame.display.update()
+                        return
 
                     if 240 <= mx <= 490 and (my - 85) % 50 <= 30 and 85 <= my < 65 + 50 * len(FIELDS):
                         selected = (my - 85) // 50
@@ -109,13 +126,16 @@ def main():
                             if len(f) > 2:
                                 fields[selected] = f[0] + '.' + ''.join([f[s] for s in range(1, len(f))])
                             f = fields[selected].split('.')
+
                             if len(f) == 2 and int(f[1]) == 0:
                                 fields[selected] = f[0]
 
                         while len(fields[selected]) > 1 and fields[selected][0] == '0':
                             fields[selected] = fields[selected][1:]
 
-                        fields[selected] = str(min(max(float(fields[selected]), FIELDS[selected][1][0]), FIELDS[selected][1][1]))[:-2]
+                        fields[selected] = str(min(max(float(fields[selected]), FIELDS[selected][1][0]), FIELDS[selected][1][1]))
+                        if fields[selected][-2:] == '.0':
+                            fields[selected] = fields[selected][:-2]
                         selected = -1
 
             if event.type == pygame.KEYDOWN:
@@ -132,25 +152,24 @@ def main():
                 fields[selected] = fields[selected][:selectedx - 1] + fields[selected][selectedx:]
                 selectedx -= 1
 
-        # print(term)
-        if term:
-            s, x, y, n = map(float, fields)
-            n = int(n)
-            s /= 250
-            break
-
         flashcount = (flashcount + 1) % 50
 
         pygame.display.update()
         clock.tick(100)
 
-    screen.fill((0, 0, 0))
-    pygame.display.update()
+
+def drawCurve() -> List[Tuple[int, int]]:
+    points = []
+    drawing = False
 
     while True:
-        term = False
+        screen.fill((0, 0, 0))
+        mousePos = pygame.mouse.get_pos()
+
+        updateButtons(mousePos, GROUP_2)
+
         if drawing:
-            points.append(tuple(pygame.mouse.get_pos()))
+            points.append(mousePos)
 
         centredPrint(screen, font, "Draw a Continuous Curve!", (250, 20))
 
@@ -159,25 +178,25 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
                 quit()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    drawing = True
+                    if REDO_PARAMS.check():
+                        getParams()
+                        return drawCurve()
+                    else:
+                        drawing = True
+
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1 and drawing:
-                    term = True
-                    break
-
-        if term:
-            break
+                    return points
 
         pygame.display.update()
         clock.tick(100)
 
-    T = 0
-    eq, r = generateEquation(n, x, y, s, points)
 
+def preview(eq: str, r: List[Tuple[float, float]]) -> None:
     vects = []
     precomp = []
     for tm in range(1000):
@@ -203,11 +222,12 @@ def main():
         vects.append(vect)
         precomp.append((250 + dx, 250 - dy))
 
+    T = 0
     while True:
         mx, my = pygame.mouse.get_pos()
 
         screen.fill((0, 0, 0))
-        updateButtons((mx, my), GROUP_2)
+        updateButtons((mx, my), GROUP_3)
         centredPrint(screen, font, "Equation Generated!", (250, 20))
 
         prev = (250, 250)
@@ -222,7 +242,6 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
                 quit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -230,7 +249,20 @@ def main():
                     if COPY_CLIPBOARD.check():
                         pyperclip.copy(eq)
 
+                    elif REDRAW_CURVE.check():
+                        eq, r = generateEquation(drawCurve())
+                        preview(eq, r)
+                        return
+
         pygame.display.update()
         clock.tick(100)
 
         T = (T + 1) % 1000
+
+
+def main() -> None:
+    global s, x, y, n
+
+    getParams()
+    eq, r = generateEquation(drawCurve())
+    preview(eq, r)
