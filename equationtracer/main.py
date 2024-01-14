@@ -5,8 +5,12 @@ from numpy import *
 from typing import *
 
 try:
+    from button import *
+    from printers import *
     from keyboard import *
 except (ModuleNotFoundError, NameError, FileNotFoundError):
+    from equationtracer.button import *
+    from equationtracer.printers import *
     from equationtracer.keyboard import *
 
 
@@ -20,20 +24,12 @@ font = pygame.font.SysFont("Arial", 20)
 tinyfont = pygame.font.SysFont("Arial", 15)
 
 
-# Funtions
-def leftAlignPrint(screen: pygame.Surface, ft: pygame.font.Font, text: str, pos: Tuple[int, int], color: Tuple[int, int, int] = (255, 255, 255)) -> None:
-    textObj = ft.render(text, True, color)
-    screen.blit(textObj, textObj.get_rect(center=[pos[0] + ft.size(text)[0] / 2, pos[1]]))
-
-
-def centredPrint(screen: pygame.Surface, ft: pygame.font.Font, text: str, pos: Tuple[int, int], color: Tuple[int, int, int] = (255, 255, 255)) -> None:
-    textObj = ft.render(text, True, color)
-    screen.blit(textObj, textObj.get_rect(center=pos))
-
-
-def rightAlignPrint(screen: pygame.Surface, ft: pygame.font.Font, text: str, pos: Tuple[int, int], color: Tuple[int, int, int] = (255, 255, 255)) -> None:
-    textObj = ft.render(text, True, color)
-    screen.blit(textObj, textObj.get_rect(center=[pos[0] - ft.size(text)[0] / 2, pos[1]]))
+# Buttons Setup
+buttons = ButtonManager(screen)
+BEGIN_DRAWING = Button((350, 460, 140, 30), fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255), render="Start Drawing!", font=tinyfont)
+COPY_CLIPBOARD = Button((350, 460, 140, 30), fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255), render="Copy to Clipboard", font=tinyfont)
+GROUP_1 = [BEGIN_DRAWING]
+GROUP_2 = [COPY_CLIPBOARD]
 
 
 def generateEquation(n, x, y, s, points):
@@ -76,6 +72,8 @@ def main():
         mx, my = pygame.mouse.get_pos()
 
         screen.fill((0, 0, 0))
+        updateButtons((mx, my), GROUP_1)
+
         centredPrint(screen, font, "Parameters", (250, 20))
         centredPrint(screen, tinyfont, "Default Settings are automatically provided!", (250, 40))
 
@@ -88,13 +86,6 @@ def main():
                 length = tinyfont.size(fields[l][:selectedx])[0]
                 pygame.draw.line(screen, (0, 0, 0), (245 + length, 90 + 50 * l), (245 + length, 110 + 50 * l))
 
-        pygame.draw.rect(screen, (200, 200, 200), (350, 460, 140, 30))
-        if 350 <= mx <= 490 and 470 <= my <= 490:
-            pygame.draw.rect(screen, (255, 255, 255), (350, 460, 140, 30), 3)
-        else:
-            pygame.draw.rect(screen, (100, 100, 100), (350, 460, 140, 30), 3)
-        centredPrint(screen, tinyfont, "Start Drawing!", (420, 475), (0, 0, 0))
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -102,7 +93,7 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if 350 <= mx <= 490 and 470 <= my <= 490:
+                    if BEGIN_DRAWING.check():
                         term = True
                         break
 
@@ -141,6 +132,7 @@ def main():
                 fields[selected] = fields[selected][:selectedx - 1] + fields[selected][selectedx:]
                 selectedx -= 1
 
+        # print(term)
         if term:
             s, x, y, n = map(float, fields)
             n = int(n)
@@ -215,6 +207,7 @@ def main():
         mx, my = pygame.mouse.get_pos()
 
         screen.fill((0, 0, 0))
+        updateButtons((mx, my), GROUP_2)
         centredPrint(screen, font, "Equation Generated!", (250, 20))
 
         prev = (250, 250)
@@ -227,13 +220,6 @@ def main():
         for i in range(T):
             pygame.draw.line(screen, (255, 255, 255), precomp[i], precomp[i + 1], 3)
 
-        pygame.draw.rect(screen, (200, 200, 200), (350, 460, 140, 30))
-        if 350 <= mx <= 490 and 470 <= my <= 490:
-            pygame.draw.rect(screen, (255, 255, 255), (350, 460, 140, 30), 3)
-        else:
-            pygame.draw.rect(screen, (100, 100, 100), (350, 460, 140, 30), 3)
-        centredPrint(screen, tinyfont, "Copy to Clipboard", (420, 475), (0, 0, 0))
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -241,7 +227,8 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    pyperclip.copy(eq)
+                    if COPY_CLIPBOARD.check():
+                        pyperclip.copy(eq)
 
         pygame.display.update()
         clock.tick(100)
