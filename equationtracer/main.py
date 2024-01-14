@@ -26,14 +26,13 @@ tinyfont = pygame.font.SysFont("Arial", 15)
 
 # Buttons Setup
 buttons = ButtonManager(screen)
-BEGIN_DRAWING = Button((350, 460, 140, 30), render="Start Drawing!", font=tinyfont,
-                       fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
-REDO_PARAMS = Button((10, 460, 140, 30), render="Modify Settings", font=tinyfont,
-                     fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
-REDRAW_CURVE = Button((10, 460, 140, 30), render="Redraw Curve", font=tinyfont,
-                      fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
-COPY_CLIPBOARD = Button((350, 460, 140, 30), render="Copy to Clipboard", font=tinyfont,
-                        fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
+STYLE = ButtonStyle(font=tinyfont, fillColor=(200, 200, 200), borderColor=(100, 100, 100), hoverBorderColor=(255, 255, 255))
+
+BEGIN_DRAWING = Button((350, 460, 140, 30), text="Start Drawing!", style=STYLE)
+REDO_PARAMS = Button((10, 460, 140, 30), text="Modify Settings", style=STYLE)
+REDRAW_CURVE = Button((10, 460, 140, 30), text="Redraw Curve", style=STYLE)
+COPY_CLIPBOARD = Button((350, 460, 140, 30), text="Copy to Clipboard", style=STYLE)
+
 GROUP_1 = [BEGIN_DRAWING]
 GROUP_2 = [REDO_PARAMS]
 GROUP_3 = [REDRAW_CURVE, COPY_CLIPBOARD]
